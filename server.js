@@ -24,6 +24,8 @@ let authors = [
     { id: '348582348', name: "Herzen", lastName: "Malo" },
     { id: '476706009', name: "Juanmi", lastName: "Malo" }];
 
+const Picture = require('./graphql/models/picture');
+
 const AuthorType = new GraphQLObjectType({
     name: 'Author',
     description: 'This represent a book written by an author',
@@ -96,15 +98,52 @@ const RootMutationType = new GraphQLObjectType({
                 authorId: { type: GraphQLNonNull(GraphQLString) },
             },
             resolve: (parent, args) => {
+
                 const picture = { id: (Math.random() * 10000).toString(), title: args.title, imageUrl: args.imageUrl, genre: args.genre, authorId: args.authorId };
                 pictures.push(picture);
                 return picture;
             }
-        }
+        },
+        deletePicture: {
+            type: PictureType,
+            description: 'Delete a Picture',
+            args: {
+                id: { type: GraphQLNonNull(GraphQLString) }
+            },
+            resolve: (parent, args) => {
+                const pictIndex = pictures.findIndex(picture => picture.id === args.id);
+
+                if (pictIndex < 0)
+                    return null;
+
+                return pictures.splice(pictIndex, 1)[0];
+            }
+        },
+        updatePicture: {
+            type: PictureType,
+            description: 'Add a Picture',
+            args: {
+                id: { type: GraphQLNonNull(GraphQLString) },
+                title: { type: GraphQLString },
+                imageUrl: { type: GraphQLString },
+                genre: { type: GraphQLString },
+                authorId: { type: GraphQLString },
+            },
+            resolve: (parent, args) => {
+                let updatedPic = pictures.find(pic => {
+                    if (pic.id === args.id) {
+                        pic.title = args.title;
+                        pic.imageUrl = args.imageUrl;
+                        pic.genre = args.genre;
+                        return true;
+                    }
+                })
+
+                return updatedPic;
+            }
+        },
     })
 })
-// Sample of Creating new Picture
-// mutation { addPicture(title: "tutut", imageUrl: "tutu", genre: "Video", authorId: "234234234"){ title } }
 
 graphqlSchema = new GraphQLSchema({
     query: RootQueryType,
@@ -121,3 +160,43 @@ const HOST = '0.0.0.0';
 
 app.listen(PORT, HOST);
 console.log(`Running on http://${HOST}:${PORT}`);
+
+//// Query and Mutations examples
+
+// Get all pictures id and title
+// {
+//     pictures{
+//         id,
+//         title
+//     }
+// }
+
+// Get picture title By id
+// {
+//     picture(id: "710012064"){
+//         title
+//     }
+// }
+
+// Get all the author names with the theirs pictures
+// {
+//     authors{
+//       name,
+//       pictures{
+//               title
+//       }
+//     }
+// }
+
+// Creating new Picture
+// mutation { 
+// addPicture(title: "tutut", imageUrl: "tutu", genre: "Video", authorId: "234234234"){
+//      title 
+//     } 
+// }
+
+// mutation{
+//     deletePicture(id: "710012064"){
+//         title
+//     }
+// }
