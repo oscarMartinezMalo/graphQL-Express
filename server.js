@@ -1,10 +1,13 @@
 const express = require('express');
 const dotenv = require('dotenv');
+const mongoose = require('mongoose');
 const expressGraphQL = require('express-graphql');
 const { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInt, GraphQLList, GraphQLNonNull } = require('graphql');
+const Picture = require('./graphql/models/picture.model');
 
 dotenv.config();
 const app = express();
+mongoose.connect(process.env.MONGODB_CONNECTION, { useNewUrlParser: true, useUnifiedTopology: true });  
 
 const pictures = [
     { id: "710012064", imageUrl: "https://images.pexels.com/photos/3075988/pexels-photo-3075988.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=750&w=1260", genre: "nature", title: "None But the Brave", authorId: '875228391' },
@@ -28,7 +31,7 @@ const AuthorType = new GraphQLObjectType({
     name: 'Author',
     description: 'This represent a book written by an author',
     fields: () => ({
-        id: { type: GraphQLNonNull(GraphQLString) },
+        _id: { type: GraphQLNonNull(GraphQLString) },
         name: { type: GraphQLNonNull(GraphQLString) },
         lastName: { type: GraphQLNonNull(GraphQLString) },
         pictures: {
@@ -44,7 +47,7 @@ const PictureType = new GraphQLObjectType({
     name: 'Picture',
     description: 'This represent a picture take by an author',
     fields: () => ({
-        id: { type: GraphQLNonNull(GraphQLInt) },
+        _id: { type: GraphQLNonNull(GraphQLString) },
         imageUrl: { type: GraphQLNonNull(GraphQLString) },
         genre: { type: GraphQLNonNull(GraphQLString) },
         title: { type: GraphQLNonNull(GraphQLString) },
@@ -95,14 +98,62 @@ const RootMutationType = new GraphQLObjectType({
                 genre: { type: GraphQLNonNull(GraphQLString) },
                 authorId: { type: GraphQLNonNull(GraphQLString) },
             },
-            resolve: (parent, args) => {
-                const picture = { id: (Math.random() * 10000).toString(), title: args.title, imageUrl: args.imageUrl, genre: args.genre, authorId: args.authorId };
-                pictures.push(picture);
-                return picture;
+            resolve: async (parent, args) => {
+                const pic = new Picture({
+                    // _id: new mongoose.Types.ObjectId(),
+                    title: args.title,
+                    imageUrl: args.imageUrl,
+                    genre: args.genre,
+                    authorId: args.authorId
+                });
+
+                try {
+                    return await pic.save();
+                } catch (error) {
+                    console.log( error );
+                    return null;
+                }
             }
-        }
+        },
+        deletePicture: {
+            type: PictureType,
+            description: 'Delete a Picture',
+            args: {
+                id: { type: GraphQLNonNull(GraphQLString) }
+            },
+            resolve: async (parent, args) => {
+              const deleted = await Picture.deleteOne({ _id: args.id }).exec();
+              if (deleted.n === 0) return  null;
+              return new Picture({
+                  _id: args.id
+              });
+            }
+        },
+        updatePicture: {
+            type: PictureType,
+            description: 'Add a Picture',
+            args: {
+                id: { type: GraphQLNonNull(GraphQLString) },
+                title: { type: GraphQLString },
+                imageUrl: { type: GraphQLString },
+                genre: { type: GraphQLString },
+                authorId: { type: GraphQLString },
+            },
+            resolve: (parent, args) => {
+                let updatedPic = pictures.find(pic => {
+                    if (pic.id === args.id) {
+                        pic.title = args.title;
+                        pic.imageUrl = args.imageUrl;
+                        pic.genre = args.genre;
+                        return true;
+                    }
+                })
+
+                return updatedPic;
+            }
+        },
     })
-})
+});
 // Sample of Creating new Picture
 // mutation { addPicture(title: "tutut", imageUrl: "tutu", genre: "Video", authorId: "234234234"){ title } }
 
