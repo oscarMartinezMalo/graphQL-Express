@@ -7,7 +7,7 @@ const Picture = require('./graphql/models/picture.model');
 
 dotenv.config();
 const app = express();
-mongoose.connect(process.env.MONGODB_CONNECTION, { useNewUrlParser: true, useUnifiedTopology: true });  
+mongoose.connect(process.env.MONGODB_CONNECTION, { useNewUrlParser: true, useUnifiedTopology: true });
 
 const pictures = [
     { id: "710012064", imageUrl: "https://images.pexels.com/photos/3075988/pexels-photo-3075988.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=750&w=1260", genre: "nature", title: "None But the Brave", authorId: '875228391' },
@@ -89,6 +89,7 @@ const RootMutationType = new GraphQLObjectType({
     name: 'Mutation',
     description: 'Root Mutation',
     fields: () => ({
+        // CREATE
         addPicture: {
             type: PictureType,
             description: 'Add a Picture',
@@ -110,11 +111,12 @@ const RootMutationType = new GraphQLObjectType({
                 try {
                     return await pic.save();
                 } catch (error) {
-                    console.log( error );
+                    console.log(error);
                     return null;
                 }
             }
         },
+        // DELETE
         deletePicture: {
             type: PictureType,
             description: 'Delete a Picture',
@@ -122,13 +124,13 @@ const RootMutationType = new GraphQLObjectType({
                 id: { type: GraphQLNonNull(GraphQLString) }
             },
             resolve: async (parent, args) => {
-              const deleted = await Picture.deleteOne({ _id: args.id }).exec();
-              if (deleted.n === 0) return  null;
-              return new Picture({
-                  _id: args.id
-              });
+                const deleted = await Picture.deleteOne({ _id: args.id }).exec();
+
+                if (deleted.n === 0) return null;
+                return new Picture({ _id: args.id });
             }
         },
+        // UPDATE
         updatePicture: {
             type: PictureType,
             description: 'Add a Picture',
