@@ -141,17 +141,15 @@ const RootMutationType = new GraphQLObjectType({
                 genre: { type: GraphQLString },
                 authorId: { type: GraphQLString },
             },
-            resolve: (parent, args) => {
-                let updatedPic = pictures.find(pic => {
-                    if (pic.id === args.id) {
-                        pic.title = args.title;
-                        pic.imageUrl = args.imageUrl;
-                        pic.genre = args.genre;
-                        return true;
-                    }
-                })
+            resolve: async (parent, args) => {
+                const updateCategory = await Picture.findOne({ _id: args.id }).exec();
 
-                return updatedPic;
+                updateCategory.title = args.title;
+                updateCategory.imageUrl = args.imageUrl;
+                updateCategory.genre = args.genre;
+                updateCategory.authorId = args.authorId;
+
+                return await updateCategory.save();
             }
         },
     })
