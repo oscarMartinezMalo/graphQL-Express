@@ -53,7 +53,7 @@ const RootQueryType = new GraphQLObjectType({
             type: PictureType,
             description: 'One Picture',
             args: { id: { type: GraphQLString } },
-            resolve: async (parent, args) =>{
+            resolve: async (parent, args) => {
                 try {
                     const pic = await Picture.findOne({ _id: args.id }).exec();
                     if (!pic) return null;
@@ -62,7 +62,7 @@ const RootQueryType = new GraphQLObjectType({
                     console.log(error);
                     return null;
                 }
-                }
+            }
         },
         pictures: {
             type: GraphQLList(PictureType),
