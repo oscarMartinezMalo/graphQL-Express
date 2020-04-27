@@ -53,17 +53,44 @@ const RootQueryType = new GraphQLObjectType({
             type: PictureType,
             description: 'One Picture',
             args: { id: { type: GraphQLString } },
-            resolve: (parent, args) => pictures.find(picture => picture.id === args.id)
+            resolve: async (parent, args) =>{
+                try {
+                    const pic = await Picture.findOne({ _id: args.id }).exec();
+                    if (!pic) return null;
+                    return pic;
+                } catch (error) {
+                    console.log(error);
+                    return null;
+                }
+                }
         },
         pictures: {
             type: GraphQLList(PictureType),
             description: 'List of Pictures',
-            resolve: () => pictures
+            resolve: async () => {
+                const picts = await Picture.find().sort({ title: 1 }).exec();
+                const result = picts.map((pic) => ({
+                    _id: pic._id,
+                    title: pic.title,
+                    imageUrl: pic.imageUrl,
+                    genre: pic.genre,
+                    authorId: pic.authorId,
+                }));
+                return result;
+            }
         },
         authors: {
             type: GraphQLList(AuthorType),
             description: 'List of Authors',
-            resolve: () => authors
+            resolve: async () => {
+                const authors = await Author.find().sort({ name: 1 }).exec();
+                const result = authors.map((author) => ({
+                    _id: author._id,
+                    name: author.name,
+                    lastName: author.lastName
+                }));
+                return result;
+            }
         },
     })
 })
