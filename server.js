@@ -1,4 +1,5 @@
 const express = require('express');
+var cors = require('cors');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const expressGraphQL = require('express-graphql');
@@ -8,6 +9,7 @@ const Author = require('./graphql/models/author.model');
 
 dotenv.config();
 const app = express();
+app.use(cors());
 mongoose.connect(process.env.MONGODB_CONNECTION, { useNewUrlParser: true, useUnifiedTopology: true });
 
 const AuthorType = new GraphQLObjectType({
@@ -19,8 +21,8 @@ const AuthorType = new GraphQLObjectType({
         lastName: { type: GraphQLNonNull(GraphQLString) },
         pictures: {
             type: GraphQLList(PictureType),
-            resolve: (author) => {
-                return pictures.filter(picture => author.id === picture.authorId);
+            resolve: async (author) => {
+                return await Picture.findOne({ _id: author.authorId }).exec();
             }
         }
     })
@@ -35,10 +37,10 @@ const PictureType = new GraphQLObjectType({
         genre: { type: GraphQLNonNull(GraphQLString) },
         title: { type: GraphQLNonNull(GraphQLString) },
         authorId: { type: GraphQLNonNull(GraphQLString) },
-        autor: {
+        author: {
             type: AuthorType,
-            resolve: (picture) => {
-                return authors.find(author => author.id === picture.authorId);
+            resolve: async (picture) => {
+                return await Author.findOne({ _id: picture.authorId }).exec();
             }
         }
     })
