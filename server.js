@@ -175,8 +175,11 @@ const RootMutationType = new GraphQLObjectType({
                     authorId: args.authorId
                 });
 
-                try {
-                    return await pic.save();
+                try {                    
+                    let pictureSaved = await pic.save();                    
+                    pictureSaved.author = await Author.findById(args.authorId).exec(); // Add the author to the response
+                    return pictureSaved;
+                    
                 } catch (error) {
                     console.log(error);
                     return null;
