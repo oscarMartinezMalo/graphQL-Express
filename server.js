@@ -19,10 +19,11 @@ const AuthorType = new GraphQLObjectType({
         _id: { type: GraphQLNonNull(GraphQLString) },
         name: { type: GraphQLNonNull(GraphQLString) },
         lastName: { type: GraphQLNonNull(GraphQLString) },
+        facePictureUrl: { type: GraphQLNonNull(GraphQLString) },
         pictures: {
             type: GraphQLList(PictureType),
             resolve: async (author) => {
-                return await Picture.findOne({ _id: author.authorId }).exec();
+                return await Picture.find({ authorId: author._id }).exec();
             }
         }
     })
@@ -89,9 +90,25 @@ const RootQueryType = new GraphQLObjectType({
                 const result = authors.map((author) => ({
                     _id: author._id,
                     name: author.name,
-                    lastName: author.lastName
+                    lastName: author.lastName,
+                    facePictureUrl: author.facePictureUrl
                 }));
                 return result;
+            }
+        },
+        picturesByAuthor: {
+            type: AuthorType,
+            description: 'List of Pictures by Author',
+            args: { id: { type: GraphQLString } },
+            resolve: async (parent, args) => {
+                try {
+                    const pics = await Author.findOne({ _id: args.id }).exec();
+                    if (!pics) return null;
+                    return pics;
+                } catch (error) {
+                    console.log(error);
+                    return null;
+                }
             }
         },
     })
@@ -107,13 +124,15 @@ const RootMutationType = new GraphQLObjectType({
             description: 'Add a Author',
             args: {
                 name: { type: GraphQLNonNull(GraphQLString) },
-                lastName: { type: GraphQLNonNull(GraphQLString) }
+                lastName: { type: GraphQLNonNull(GraphQLString) },
+                facePictureUrl: { type: GraphQLNonNull(GraphQLString) },
             },
             resolve: async (parent, args) => {
                 const author = new Author({
                     // _id: new mongoose.Types.ObjectId(),
                     name: args.name,
-                    lastName: args.lastName
+                    lastName: args.lastName,
+                    facePictureUrl: args.facePictureUrl
                 });
 
                 try {
