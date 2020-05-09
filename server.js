@@ -82,6 +82,22 @@ const RootQueryType = new GraphQLObjectType({
                 return result;
             }
         },
+        picturesOffSet: {
+            type: GraphQLList(PictureType),
+            description: 'List of Pictures',
+            args: { offSet: { type: GraphQLInt } },
+            resolve: async (parent, args) => {
+                const picts = await Picture.find().sort({ title: 1 }).skip(args.offSet).limit(9).exec();
+                const result = picts.map((pic) => ({
+                    _id: pic._id,
+                    title: pic.title,
+                    imageUrl: pic.imageUrl,
+                    genre: pic.genre,
+                    authorId: pic.authorId,
+                }));
+                return result;
+            }
+        },
         authors: {
             type: GraphQLList(AuthorType),
             description: 'List of Authors',
