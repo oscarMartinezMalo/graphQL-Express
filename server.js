@@ -95,6 +95,9 @@ const RootQueryType = new GraphQLObjectType({
                     genre: pic.genre,
                     authorId: pic.authorId,
                 }));
+
+                
+                console.log(result);
                 return result;
             }
         },
@@ -247,6 +250,7 @@ const RootMutationType = new GraphQLObjectType({
                 authorId: { type: GraphQLString },
             },
             resolve: async (parent, args) => {
+                console.log('update');
                 const updatePicture = await Picture.findOne({ _id: args.id }).exec();
 
                 updatePicture.title = args.title;
