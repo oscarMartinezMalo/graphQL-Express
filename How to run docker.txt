@@ -1,0 +1,11 @@
+Create the image( with Tag name graphql-express)
+docker build -t graphql-express .
+
+Run the Container
+docker run --name graphql-express-node -d --rm -p 444:3000 graphql-express
+
+Stop Container
+docker stop graphql-express-node
+
+Remove Image
+docker rmi graphql-express

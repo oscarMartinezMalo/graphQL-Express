@@ -96,7 +96,6 @@ const RootQueryType = new GraphQLObjectType({
                     authorId: pic.authorId,
                 }));
 
-                
                 console.log(result);
                 return result;
             }
