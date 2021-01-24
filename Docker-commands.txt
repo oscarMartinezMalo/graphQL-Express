@@ -1,0 +1,55 @@
+-----------------------
+Build FrontEnd Image
+-----------------------
+Add host to package.json
+  "scripts": {
+    "start": "ng serve --disableHostCheck --host 0.0.0.0",
+	...
+	}
+
+Change the URL to point to the local backend
+App/graphql.module.ts
+const uri = 'http://localhost:3000/'
+
+//Build to Image//
+docker build -t photo-angular-image .
+
+-----------------------
+Run FrontEnd Container
+-----------------------
+//Run the Container//
+docker run --name photo-angular
+ -it
+ --rm
+ -d
+ -p 4200:4200
+ photo-angular-image
+
+-d = detach mode
+-p = map port of the container to the local host
+--rm= remove container when you stop it with(docker stop angular-container)
+-it= interactive mode(still running in the background even without any default app to run)
+
+
+-----------------------
+Build Node API Image
+-----------------------
+docker build -t photo-node .
+
+
+-----------------------
+Run Node API Image
+-----------------------
+docker run --name container-backend
+-d
+--rm 
+-p 3000:3000 
+-e MONGODB_CONNECTION=mongodb+srv://ommalor:hola1hola1@picturesgraphql-gwxgo.mongodb.net/test?retryWrites=true
+photo-node
+
+-----------------------
+For Docker Compose
+-----------------------
+docker-compose up -d
+docker-compose up --build
+docker-compose down
